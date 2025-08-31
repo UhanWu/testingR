@@ -91,6 +91,6 @@ ggplot(plot_df, aes(x = day, y = avg_hr, color = factor(treated))) +
 ```
 
 ## STEP 4: CONCLUSION
-The Treatment is Highly Effective p < 0.05,
+The Treatment is Highly Effective p < 0.05.
 
 
