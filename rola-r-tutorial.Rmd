@@ -44,7 +44,7 @@ This dataset can be aggregated to daily averages for visualization (e.g., mean d
 
 Key Functions: `library()`
 
-```{r}
+```{r message = FALSE}
 library(tidyverse)
 library(lubridate)
 library(janitor)
@@ -67,7 +67,7 @@ ehr_did          <- read_csv("ehr_did.csv")
 Key Functions: `mutate()`, `group_by()`, `select()`, `filter()`,`summarise()`,`pivot_longer()`, `pivot_wider()`
 
 ```{r}
-analysis_df <- ehr %>%
+analysis_df <- ehr_did %>%
   mutate(date = as.Date(ymd_hms(datetime))) %>%
   group_by(patient_id, day, treated, post, date) %>%
   summarise(mean_hr = mean(hr), .groups = "drop")
@@ -88,7 +88,7 @@ plot_df <- analysis_df %>%
   summarise(avg_hr = mean(mean_hr), .groups = "drop")
 
 ggplot(plot_df, aes(x = day, y = avg_hr, color = factor(treated))) +
-  geom_line(size = 1.2) +
+  geom_line(linewidth = 1.2) +
   geom_vline(xintercept = 50, linetype = "dashed", color = "red") +
   labs(
     x = "Day of Trial",
