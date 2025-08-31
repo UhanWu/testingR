@@ -42,6 +42,8 @@ This dataset can be aggregated to daily averages for visualization (e.g., mean d
 
 ## STEP 1: LOAD PACKAGES
 
+Key Functions: `library()`
+
 ```{r}
 library(tidyverse)
 library(lubridate)
@@ -49,16 +51,20 @@ library(janitor)
 library(lme4)
 library(rstanarm)
 library(rdrobust)
+library(readxl)
 ```
 
 ## STEP 2: LOAD DATA
 
+Key Functions: `read_csv("[path].csv")`, `read_excel("[path].xlsx")`
+
 ```{r}
 ehr_did          <- read_csv("ehr_did.csv")
-
 ```
 
 ## STEP 2: Data Wrangling
+
+Key Functions: `mutate()`, `group_by()`, `select()`, `filter()`,`summarise()`,`pivot_longer()`, `pivot_wider()`
 
 ```{r}
 analysis_df <- ehr %>%
@@ -68,7 +74,10 @@ analysis_df <- ehr %>%
 ```
 
 
-## STEP 3: ANALYSIS
+## STEP 3: ANALYSIS/Models
+
+Key Functions: `lm()`, `chi.test()`, `t.test()`, etc. 
+Visualizations: `ggplot()`
 
 ```{R}
 fit <- lm(mean_hr ~ treated * post, data = analysis_df)
