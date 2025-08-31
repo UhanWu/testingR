@@ -1,0 +1,96 @@
+---
+title: "rola-r-tutorial"
+output: html_document
+date: "2025-08-28"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+```
+
+# STEP 0: Data Description
+
+## Research Design
+
+This simulated project represents a **clinical trial-style time-series study** analyzed under a **Difference-in-Differences (DiD) framework**. A total of 100 patients are observed daily for 100 days, with multiple electronic health record (EHR) check-ups per day recording heart rate. At the halfway point of the trial (day 50), an intervention is introduced: patients in the treatment group begin receiving a new drug intended to reduce elevated heart rate, while control patients remain untreated.  
+
+- **Groups:** Patients are split into treated (receive drug at day 50) and control (never treated).  
+- **Periods:** Pre-treatment (days 1–49) vs post-treatment (days 50–100).  
+- **Treatment Effect:** The DiD estimator compares the change in average heart rate before vs after the intervention across treated and control patients. A greater reduction among treated patients relative to controls indicates the causal effect of the drug.  
+
+This design mirrors real-world EHR studies where an intervention is rolled out at a fixed time, and differences in pre/post changes between groups are used to estimate impact.
+
+---
+
+## ehr_did.csv
+
+This file contains the **full dataset** for analysis, combining demographics, trial structure, and repeated EHR measures into a single table with >10,000 rows. Each record corresponds to one check-up for a patient at a specific day and time. Key variables include:  
+
+- **patient_id:** Unique identifier for each patient.  
+- **treated:** Indicator (1 = treatment group, 0 = control group).  
+- **day:** Day of follow-up (1–100).  
+- **post:** Indicator (1 = post-intervention period, day ≥ 50; 0 = pre-intervention).  
+- **datetime:** Exact timestamp of the check-up (to hour/minute).  
+- **hr:** Heart rate (beats per minute) recorded at that check-up.  
+- **sex, race, age, bmi, baseline_hr:** Demographic and baseline covariates carried into each row for convenience.  
+
+This dataset can be aggregated to daily averages for visualization (e.g., mean daily HR by group) or analyzed as a full longitudinal panel for formal DiD estimation.
+
+
+# R Pipeline
+
+## STEP 1: LOAD PACKAGES
+
+```{r}
+library(tidyverse)
+library(lubridate)
+library(janitor)
+library(lme4)
+library(rstanarm)
+library(rdrobust)
+```
+
+## STEP 2: LOAD DATA
+
+```{r}
+ehr_did          <- read_csv("ehr_did.csv")
+
+```
+
+## STEP 2: Data Wrangling
+
+```{r}
+analysis_df <- ehr %>%
+  mutate(date = as.Date(ymd_hms(datetime))) %>%
+  group_by(patient_id, day, treated, post, date) %>%
+  summarise(mean_hr = mean(hr), .groups = "drop")
+```
+
+
+## STEP 3: ANALYSIS
+
+```{R}
+fit <- lm(mean_hr ~ treated * post, data = analysis_df)
+summary(fit)
+
+plot_df <- analysis_df %>%
+  group_by(day, treated, post) %>%
+  summarise(avg_hr = mean(mean_hr), .groups = "drop")
+
+ggplot(plot_df, aes(x = day, y = avg_hr, color = factor(treated))) +
+  geom_line(size = 1.2) +
+  geom_vline(xintercept = 50, linetype = "dashed", color = "red") +
+  labs(
+    x = "Day of Trial",
+    y = "Heart Rate (bpm)",
+    color = "Treated"
+  ) +
+  theme_bw()
+
+```
+
+## STEP 4: CONCLUSION
+The Treatment is Highly Effective p < 0.05,
+
+
